@@ -6,8 +6,11 @@ int main(){
 	printf("Welcome User!\n");
 	printf("Enter your year of birth: ");
 	scanf("%d", &yob);
-	printf("Enter current year: ");
-	scanf("%d", &cur_year);
+	
+	do{
+	  printf("Enter current year: ");
+	  scanf("%d", &cur_year);
+	} while (cur_year < yob);
 
 	if (yob > cur_year) {
 		printf("Incorret input!\nYear of birth cannot be later than current year.");
