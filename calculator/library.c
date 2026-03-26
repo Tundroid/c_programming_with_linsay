@@ -49,10 +49,9 @@ int factorial(int x)
     {
         return 1;
     }
-    else
+    else            
     {
         int result = 1;
-
         for (int i = 2; i <= x; i++)
         {
             result *= i;
@@ -72,4 +71,22 @@ int my_abs(int x)
     {
         return x;
     }
+}
+int my_log(int x)
+{
+    if (x <= 0)
+    {
+        return -1; // Logarithm is not defined for negative numbers
+    }
+    
+    int result = 0;
+    int power_of_10 = 1;
+
+    while (power_of_10 <= x)
+    {
+        power_of_10 *= 10;
+        result++;
+    }
+
+    return result - 1; // Subtract 1 to get the correct logarithm value
 }
