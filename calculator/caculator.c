@@ -65,6 +65,22 @@ int main(void)
 		}
 
 		printResultLine();
+		int choice;
+double a, b,base,result;
+printf("logarithm operations:\n");
+printf("enter base:");
+scanf("%lf",&base);
+printf("\nchooseoperations:\n");
+printf("1=log(a*b)\n");
+printf("2=log(a/b)\n");
+printf("3=log(a^b)\n");
+printf("4=log(1)\n");
+printf("5=log(base)\n");
+printf("6=log(a)change of base\n");
+printf("7=inverse(base^log_base(a))\n");
+printf("enter your choice:");
+scanf("%d",&choice);
+
 
 		switch (option)
 		{
@@ -144,30 +160,51 @@ int main(void)
 		}
 		case 7:
 		{
-						
-			int base = readInt("Enter base for logarithm (must be > 1):");
-			int number = readInt("Enter number to find logarithm of (must be > 0):");
-			if (base <= 1 || number <= 0)
-			{
-				printf("Logarithm is not defined for the given base and number.\n");
-			}
-			else
-			{
-				answer = my_log(number);
-				if (answer == -1)
-				{
-					printf("Logarithm is not defined for the given base and number.\n");
-				} 
-				
-				else
-				{
-					printf("Result: log base %d of %d = %d\n", base, number, answer);
-				}
+if(choice==1){       //product rule
+	printf("enter a and b:");
+	scanf("%lf%lf",&a,&b);
+	result=log(a*b)/log(base);
+	printf("Result: %.4lf\n",result);
+}
+else if (choice == 2){      //quotient rule
+	printf("enter a and b:");
+	scanf("%lf%lf",&a,&b);
+	result=log(a/b)/log(base);
+	printf("Result: %.4lf\n", result);
+}
+else if (choice == 3){      //power rule
+	printf("enter a and power b:");
+	scanf("%lf%lf",&a,&b);			
+result=log(pow(a,b))/log(base);
+	printf("Result: %.4lf\n",result);
+}
+else if (choice == 4){      //LOG OF 1
+	result=0;
+	printf("Result: %.4lf\n", result);
+}
+else if (choice == 5){    //LOG OF BASE
+	result=1;
+	printf("result=%.4lf\n", result);	
+
+}
+else if (choice ==6 ){       //change of base
+	printf("enter a,b :");
+	scanf("%lf%lf",&a,&b);
+result=log(a)/log(base);
+	printf("Result: =%.4lf\n", result);
+}
+
+else if (choice == 7){       //inverse
+	printf("enter a :");
+	scanf("%lf",&a);
+	result=pow(base,log(a)/log(base));
+	printf("Result: =%lf\n", result);
+
 			}
 			break;
 		}
 		default:
-			printf("Please select a valid option from 1 to 7.\n");
+			printf("Please select a valid option from 1 to 8.\n");
 			break;
 		}
 
