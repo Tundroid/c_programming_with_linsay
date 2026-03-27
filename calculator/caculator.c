@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "library.c"
-#include<math.h>
+#include <math.h>
 int readInt(const char *prompt)
 {
 	int value;
@@ -66,21 +66,20 @@ int main(void)
 
 		printResultLine();
 		int choice;
-double a, b,base,result;
-printf("logarithm operations:\n");
-printf("enter base:");
-scanf("%lf",&base);
-printf("\nchooseoperations:\n");
-printf("1=log(a*b)\n");
-printf("2=log(a/b)\n");
-printf("3=log(a^b)\n");
-printf("4=log(1)\n");
-printf("5=log(base)\n");
-printf("6=log(a)change of base\n");
-printf("7=inverse(base^log_base(a))\n");
-printf("enter your choice:");
-scanf("%d",&choice);
-
+		double a, b, base, result;
+		printf("logarithm operations:\n");
+		printf("enter base:");
+		scanf("%lf", &base);
+		printf("\nchooseoperations:\n");
+		printf("1=log(a*b)\n");
+		printf("2=log(a/b)\n");
+		printf("3=log(a^b)\n");
+		printf("4=log(1)\n");
+		printf("5=log(base)\n");
+		printf("6=log(a)change of base\n");
+		printf("7=inverse(base^log_base(a))\n");
+		printf("enter your choice:");
+		scanf("%d", &choice);
 
 		switch (option)
 		{
@@ -160,46 +159,51 @@ scanf("%d",&choice);
 		}
 		case 7:
 		{
-if(choice==1){       //product rule
-	printf("enter a and b:");
-	scanf("%lf%lf",&a,&b);
-	result=log(a*b)/log(base);
-	printf("Result: %.4lf\n",result);
-}
-else if (choice == 2){      //quotient rule
-	printf("enter a and b:");
-	scanf("%lf%lf",&a,&b);
-	result=log(a/b)/log(base);
-	printf("Result: %.4lf\n", result);
-}
-else if (choice == 3){      //power rule
-	printf("enter a and power b:");
-	scanf("%lf%lf",&a,&b);			
-result=log(pow(a,b))/log(base);
-	printf("Result: %.4lf\n",result);
-}
-else if (choice == 4){      //LOG OF 1
-	result=0;
-	printf("Result: %.4lf\n", result);
-}
-else if (choice == 5){    //LOG OF BASE
-	result=1;
-	printf("result=%.4lf\n", result);	
+			if (choice == 1)
+			{ // product rule
+				printf("enter a and b:");
+				scanf("%lf%lf", &a, &b);
+				result = log(a * b) / log(base);
+				printf("Result: %.4lf\n", result);
+			}
+			else if (choice == 2)
+			{ // quotient rule
+				printf("enter a and b:");
+				scanf("%lf%lf", &a, &b);
+				result = log(a / b) / log(base);
+				printf("Result: %.4lf\n", result);
+			}
+			else if (choice == 3)
+			{ // power rule
+				printf("enter a and power b:");
+				scanf("%lf%lf", &a, &b);
+				result = log(pow(a, b)) / log(base);
+				printf("Result: %.4lf\n", result);
+			}
+			else if (choice == 4)
+			{ // LOG OF 1
+				result = 0;
+				printf("Result: %.4lf\n", result);
+			}
+			else if (choice == 5)
+			{ // LOG OF BASE
+				result = 1;
+				printf("result=%.4lf\n", result);
+			}
+			else if (choice == 6)
+			{ // change of base
+				printf("enter a,b :");
+				scanf("%lf%lf", &a, &b);
+				result = log(a) / log(base);
+				printf("Result: =%.4lf\n", result);
+			}
 
-}
-else if (choice ==6 ){       //change of base
-	printf("enter a,b :");
-	scanf("%lf%lf",&a,&b);
-result=log(a)/log(base);
-	printf("Result: =%.4lf\n", result);
-}
-
-else if (choice == 7){       //inverse
-	printf("enter a :");
-	scanf("%lf",&a);
-	result=pow(base,log(a)/log(base));
-	printf("Result: =%lf\n", result);
-
+			else if (choice == 7)
+			{ // inverse
+				printf("enter a :");
+				scanf("%lf", &a);
+				result = pow(base, log(a) / 	(base));
+				printf("Result: =%lf\n", result);
 			}
 			break;
 		}
@@ -214,5 +218,3 @@ else if (choice == 7){       //inverse
 
 	return 0;
 }
-
-
