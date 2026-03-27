@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "library.c"
-#include <math.h>
+
 int readInt(const char *prompt)
 {
 	int value;
@@ -36,8 +36,9 @@ void printBanner(void)
 	printf("| 4. Integer square root                   |\n");
 	printf("| 5. Factorial                             |\n");
 	printf("| 6. Absolute value                        |\n");
-	printf("| 7. logarithm                            |\n");
-	printf("| 8. Exit                                  |\n");
+	printf("| 7. Logarithm                             |\n");
+	printf("| 8. Quadratic Solver                      |\n");
+	printf("| 9. Exit                                  |\n");
 	printf("+------------------------------------------+\n");
 }
 
@@ -56,30 +57,15 @@ int main(void)
 		int answer;
 
 		printBanner();
-		option = readInt("Select an option (1-8): ");
+		option = readInt("Select an option (1-9): ");
 
-		if (option == 8)
+		if (option == 9)
 		{
 			printf("\nThanks for using Linsay's Fancy Calculator. Bye!\n");
 			break;
 		}
 
 		printResultLine();
-		int choice;
-		double a, b, base, result;
-		printf("logarithm operations:\n");
-		printf("enter base:");
-		scanf("%lf", &base);
-		printf("\nchooseoperations:\n");
-		printf("1=log(a*b)\n");
-		printf("2=log(a/b)\n");
-		printf("3=log(a^b)\n");
-		printf("4=log(1)\n");
-		printf("5=log(base)\n");
-		printf("6=log(a)change of base\n");
-		printf("7=inverse(base^log_base(a))\n");
-		printf("enter your choice:");
-		scanf("%d", &choice);
 
 		switch (option)
 		{
@@ -159,51 +145,47 @@ int main(void)
 		}
 		case 7:
 		{
-			if (choice == 1)
-			{ // product rule
-				printf("enter a and b:");
-				scanf("%lf%lf", &a, &b);
-				result = log(a * b) / log(base);
-				printf("Result: %.4lf\n", result);
+			int base, x;
+			double result;
+			printf("Enter base: ");
+			scanf("%d", &base);
+			printf("Enter number: ");
+			scanf("%d", &x);
+			result = my_log(base, x);
+			if (result == -1)
+			{
+				printf("Logarithm is not defined for base <= 1 or x <= 0.\n");
 			}
-			else if (choice == 2)
-			{ // quotient rule
-				printf("enter a and b:");
-				scanf("%lf%lf", &a, &b);
-				result = log(a / b) / log(base);
-				printf("Result: %.4lf\n", result);
+			else
+			{
+				printf("Result: log_%d(%d) = %.2f\n", base, x, result);
 			}
-			else if (choice == 3)
-			{ // power rule
-				printf("enter a and power b:");
-				scanf("%lf%lf", &a, &b);
-				result = log(pow(a, b)) / log(base);
-				printf("Result: %.4lf\n", result);
-			}
-			else if (choice == 4)
-			{ // LOG OF 1
-				result = 0;
-				printf("Result: %.4lf\n", result);
-			}
-			else if (choice == 5)
-			{ // LOG OF BASE
-				result = 1;
-				printf("result=%.4lf\n", result);
-			}
-			else if (choice == 6)
-			{ // change of base
-				printf("enter a,b :");
-				scanf("%lf%lf", &a, &b);
-				result = log(a) / log(base);
-				printf("Result: =%.4lf\n", result);
-			}
+			break;
+		}
+		case 8:
+		{
+			int a, b, c;
+			double root1, root2;
 
-			else if (choice == 7)
-			{ // inverse
-				printf("enter a :");
-				scanf("%lf", &a);
-				result = pow(base, log(a) / 	(base));
-				printf("Result: =%lf\n", result);
+			printf("For the quadratic equation ax^2 + bx + c = 0,\n");
+			a = readInt("Enter a (non-zero): ");
+			if (a == 0)
+			{
+				printf("Coefficient a cannot be zero for a quadratic equation.\n");
+				break;
+			}
+			b = readInt("Enter b: ");
+			c = readInt("Enter c: ");
+
+			my_quadratic_solver(a, b, c, &root1, &root2);
+
+			if (root1 == -1 && root2 == -1)
+			{
+				printf("The equation has no real roots.\n");
+			}
+			else
+			{
+				printf("The roots of the equation are: %.2f and %.2f\n", root1, root2);
 			}
 			break;
 		}
