@@ -2,10 +2,10 @@
 
 int main(void)
 {
-    char name[10];
+    char name[15];
 
     printf("Enter your name: ");
-    scanf("%s", name);
+    scanf("%s",&name);
 
     printf("Hello, %s!\n", name);
 

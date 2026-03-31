@@ -51,6 +51,7 @@ int main(void)
 {
 	int option;
 
+
 	while (1)
 	{
 		int n;
@@ -67,7 +68,7 @@ int main(void)
 
 		printResultLine();
 
-		switch (option)
+		switch (option)c
 		{
 		case 1:
 		{
@@ -171,7 +172,10 @@ int main(void)
 			a = readInt("Enter a (non-zero): ");
 			if (a == 0)
 			{
-				printf("Coefficient a cannot be zero for a quadratic equation.\n");
+
+
+
+printf("Coefficient a cannot be zero for a quadratic equation.\n");
 				break;
 			}
 			b = readInt("Enter b: ");
