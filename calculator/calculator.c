@@ -68,7 +68,7 @@ int main(void)
 
 		printResultLine();
 
-		switch (option)c
+		switch (option)
 		{
 		case 1:
 		{
