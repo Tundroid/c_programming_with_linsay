@@ -1,60 +1,62 @@
 #include <stdio.h>
+
+/**
+ * Function to determine the grade based on the average marks
+ * @param average The average marks of the student
+ * @return The grade corresponding to the average marks
+ */
+char get_grade(float average)
+{
+    if (average >= 90)
+        return 'A';
+    else if (average >= 80)
+        return 'B';
+    else if (average >= 70)
+        return 'C';
+    else if (average >= 60)
+        return 'D';
+    else
+        return 'F';
+}
+
 struct student
 {
     char name[20];
     float marks[3];
-    float average[3];
-    char grade[3];
+    float average;
+    char grade;
 };
+
+// or SUBJECTS[3] = {"Math", "Physics", "Chemistry"};
+const char *SUBJECTS[] = {"Math", "Physics", "Chemistry"};
+
 int main()
 {
     struct student s1[3];
-    int i,j;
+
+    int i, j;
+
     for (i = 0; i < 3; i++)
     {
-        printf(" enter name of student %d:", i + 1);
+        printf("Enter name of student %d: ", i + 1);
         scanf("%s", s1[i].name);
-    }
-    for (j = 0; j < 3; j++)
-    {
-        s1[i].average = 0;
-        printf("enter mark for subject %d:", j + 1);
-        scanf("%f", &s1[i].marks[j]);
-        s1[i].average=(s1[i].average + s1[i].marks[j]) / 3;
-        scanf("%f", &s1[i].average);
+
+        int sum = 0;
+        for (j = 0; j < 3; j++)
+        {
+            printf("Enter mark for %s: ", SUBJECTS[j]);
+            scanf("%f", &s1[i].marks[j]);
+            sum += s1[i].marks[j];
+        }
+        s1[i].average = sum / 3.0;
+        s1[i].grade = get_grade(s1[i].average);
     }
 
-    if (s1[i].average >= 90)
-    {
-        s1[i].grade = 'A';
-    }
-    else if (s1[i].average >= 80)
-    {
-        s1[i].grade = 'B';
-    }
-    else if (s1[i].average >= 70)
-    {
-        s1[i].grade = 'C';
-    }
-    else if (s1[i].average >= 60)
-    {
-        s1[1].grade[i] = 'D';
-    }
-    else
-    {
-        s1[i].grade = 'F';
-    }
-    printf("\n_____report card_____");
-
-    printf("name\t\tbiology\t\tchemistry\t\tphysics\t\taverage\t\tgrade\n");
+    printf("\n_____Report Card_____\n");
 
     for (i = 0; i < 3; i++)
     {
-        printf("%-10\t", s1[i].name);
-        for (int j = 0; j < 3; j++)
-            printf("%.2f\t", s1[i].marks[j]);
-        printf("%.2f\t", s1[i].average);
-        printf("%c\t", s1[i].grade);
+        printf("\nName: %20s | Average: %5.2f | Grade: %c\n", s1[i].name, s1[i].average, s1[i].grade);
     }
     return 0;
 }
