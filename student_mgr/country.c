@@ -16,6 +16,8 @@ int main()
 
     int i;
 
+     
+    
     for (i = 0; i < 4; i++)
     {
         printf("Enter name of country %d: ", i + 1);
