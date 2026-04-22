@@ -162,7 +162,7 @@ void deposit()
 /**
  * @brief Withdraws funds from a customer account back to the bank account.
  */
-void withdraw()
+void withdraw()=
 {
     int account_number;
     float amount;
