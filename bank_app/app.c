@@ -162,14 +162,14 @@ void deposit()
 /**
  * @brief Withdraws funds from a customer account back to the bank account.
  */
-void withdraw()=
+void withdraw()
 {
     int account_number;
     float amount;
 
-    printf("Enter account number: ");
+    printf("Ent-er account number: ");
     scanf("%d", &account_number);
-    printf("Enter amount to withdraw: ");
+    printf("Ente-r amount to withdraw: ");
     scanf("%f", &amount);
 
     Account *cus_account = find_account(account_number);
@@ -192,7 +192,7 @@ void withdraw()=
     {
         printf("Withdrawal failed! Overdraft limit exceeded.\n");
     }
-    
+   
     }
 
     {
