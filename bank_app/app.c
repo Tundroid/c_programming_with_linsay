@@ -17,7 +17,7 @@ typedef struct Account
 {
     char name[50];
     int account_number;
-    float balance;
+    int balance;
     int account_limit;
     int overdraft_limit;
     struct Account *next;
@@ -27,7 +27,7 @@ typedef struct txn
 {
     int from_account;
     int to_account;
-    float amount;
+    int amount;
     struct txn *next;
 } Transaction;
 
@@ -151,7 +151,7 @@ void deposit()
     printf("Enter account number: ");
     scanf("%d", &account_number);
     printf("Enter amount to deposit: ");
-    scanf("%f", &amount);
+    scanf("%d", &amount);
     Account *cus_account = find_account(account_number);
 
     if (cus_account == NULL)
@@ -176,7 +176,7 @@ void deposit()
     cus_account->balance += amount;
     default_account->balance -= amount;
     record_transaction(DEFAULT_BANK_ACCOUNT_NUMBER, account_number, amount);
-    printf("Deposit successful! New balance: %.2f\n", cus_account->balance);
+    printf("Deposit successful! New balance: %d\n", cus_account->balance);
 }
 
 /**
@@ -191,7 +191,7 @@ void withdraw()
     printf("Ent-er account number: ");
     scanf("%d", &account_number);
     printf("Enter amount to withdraw: ");
-    scanf("%f", &amount);
+    scanf("%d", &amount);
 
     Account *cus_account = find_account(account_number);
     if (cus_account == NULL)
@@ -203,7 +203,7 @@ void withdraw()
     {
         if (cus_account->overdraft_limit == 0)
         {
-            printf("Withdrawal failed! Balance is insufficent.\n");
+            printf("Withdrawal failed! Balance is insufficient.\n");
             return;
         }
         else if (cus_account->balance + cus_account->overdraft_limit < amount)
@@ -219,10 +219,10 @@ void withdraw()
     cus_account->balance -= amount;
     default_account->balance += amount;
     record_transaction(account_number, DEFAULT_BANK_ACCOUNT_NUMBER, amount);
-    printf("Withdrawal successful! New balance: %.2f\n", cus_account->balance);
+    printf("Withdrawal successful! New balance: %d\n", cus_account->balance);
     if (overdraft_used)
     {
-        printf("Note: Overdraft used! Current overdraft used: %.2f\n", -cus_account->balance);
+        printf("Note: Overdraft used! Current overdraft used: %d\n", -cus_account->balance);
     }
 }
 
@@ -241,14 +241,12 @@ void check_balance()
     if (cus_account == NULL)
     {
         printf("Account number %d not found!\n", account_number);
-        cus_account->balance += 0.0; // Set balance to 0 for non-existent accounts to avoid uninitialized access in print statements.
-
         return;
     }
 
     printf("Account holder: %s\n", cus_account->name);
     printf("Account number: %d\n", cus_account->account_number);
-    printf("Balance: %.2f\n", cus_account->balance);
+    printf("Balance: %d\n", cus_account->balance);
 }
 
 /**
@@ -264,7 +262,7 @@ void transfer()
     printf("Enter destination account number: ");
     scanf("%d", &to_account);
     printf("Enter amount to transfer: ");
-    scanf("%f", &amount);
+    scanf("%d", &amount);
 
     Account *src_account = find_account(from_account);
     Account *dest_account = find_account(to_account);
@@ -305,7 +303,7 @@ void transfer()
     {
         if (src_account->overdraft_limit == 0)
         {
-            printf("Transfer failed! Balance is insufficent for source account number %d!\n", from_account);
+            printf("Transfer failed! Balance is insufficient for source account number %d!\n", from_account);
             return;
         }
         else if(src_account->balance + src_account->overdraft_limit < amount)
@@ -323,8 +321,8 @@ void transfer()
     src_account->balance -= amount;
     dest_account->balance += amount;
     record_transaction(from_account, to_account, amount);
-    printf("Transfer successful! New balance of source account: %.2f\n", src_account->balance);
-    printf("New balance of destination account: %.2f\n", dest_account->balance);
+    printf("Transfer successful! New balance of source account: %d\n", src_account->balance);
+    printf("New balance of destination account: %d\n", dest_account->balance);
 }
 
 /**
@@ -336,7 +334,7 @@ void list_all_transactions()
     printf("\n--- All Transactions ---\n");
     while (current != NULL)
     {
-        printf("From Account: %d | To Account: %d | Amount: %.2f\n",
+        printf("From Account: %d | To Account: %d | Amount: %d\n",
                current->from_account, current->to_account, current->amount);
         current = current->next;
     }
@@ -364,7 +362,7 @@ void list_transactions_for_account()
     {
         if (current->from_account == account_number || current->to_account == account_number)
         {
-            printf("From Account: %d | To Account: %d | Amount: %.2f\n",
+            printf("From Account: %d | To Account: %d | Amount: %d\n",
                    current->from_account, current->to_account, current->amount);
         }
         current = current->next;
@@ -398,7 +396,7 @@ void show_accounts()
     printf("\n--- Account List ---\n");
     while (current != NULL)
     {
-        printf("Account Holder: %20s | Account Number: %5d | Balance: %.2f | Overdraft Limit: %d | Account Limit: %d\n",
+        printf("Account Holder: %20s | Account Number: %5d | Balance: %d | Overdraft Limit: %d | Account Limit: %d\n",
                current->name, current->account_number, current->balance, current->overdraft_limit, current->account_limit);
         current = current->next;
     }
