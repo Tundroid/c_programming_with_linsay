@@ -67,7 +67,7 @@ void create_default_account()
  * @param to_account Destination account number.
  * @param amount Amount transferred.
  */
-void record_transaction(int from_account, int to_account, float amount)
+void record_transaction(int from_account, int to_account, int amount)
 {
     Transaction *new_txn = (Transaction *)malloc(sizeof(Transaction));
     if (new_txn == NULL)
@@ -146,7 +146,7 @@ void create_account()
 void deposit()
 {
     int account_number;
-    float amount;
+    int amount;
 
     printf("Enter account number: ");
     scanf("%d", &account_number);
@@ -185,7 +185,7 @@ void deposit()
 void withdraw()
 {
     int account_number;
-    float amount;
+    int amount;
     bool overdraft_used = false;
 
     printf("Enter account number: ");
@@ -255,7 +255,7 @@ void check_balance()
 void transfer()
 {
     int from_account, to_account;
-    float amount;
+    int amount;
 
     printf("Enter source account number: ");
     scanf("%d", &from_account);
