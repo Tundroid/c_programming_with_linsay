@@ -1,15 +1,16 @@
 /**
- * @file app.c 
+ * @file app.c
  * @author MOLeCULE Soft (felix@moleculesoft.net)
  * @brief A simple banking application that allows users to create accounts,
  *        deposit and withdraw money, and check their balance using linked lists.
  * @version 1.0
  * @date 2024-06-01
- **/                                         
+ **/
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define DEFAULT_BANK_ACCOUNT_NUMBER 123
 typedef struct Account
@@ -53,6 +54,8 @@ void create_default_account()
     strcpy(default_account->name, "Bank");
     default_account->account_number = DEFAULT_BANK_ACCOUNT_NUMBER;
     default_account->balance = 1000000.0;
+    default_account->account_limit = 0;
+    default_account->overdraft_limit = 0;
     /* Push-front insertion for O(1) linked-list insert. */
     default_account->next = head;
     head = default_account;
@@ -111,14 +114,28 @@ void create_account()
         return;
     }
 
-    printf("Enter account holder's name: ");
-    scanf("%s", new_account->name);
     printf("Enter account number: ");
     scanf("%d", &new_account->account_number);
+
+    Account *check = find_account(new_account->account_number);
+    if (check != NULL)
+    {
+        printf("Account number %d already exists!\n", new_account->account_number);
+        free(new_account);
+        return;
+    }
+
+    printf("Enter account holder's name: ");
+    scanf("%s", new_account->name);
+    printf("Enter account limit: ");
+    scanf("%d", &new_account->account_limit);
+    printf("Enter overdraft limit: ");
+    scanf("%d", &new_account->overdraft_limit);
+
     new_account->balance = 0.0;
     /* Insert new account at head to avoid traversing the entire list. */
     new_account->next = head;
-    head = new_account; 
+    head = new_account;
 
     printf("Account created successfully!\n");
 }
@@ -130,19 +147,18 @@ void deposit()
 {
     int account_number;
     float amount;
-    const float limit=50000;
-                                                                                               
+
     printf("Enter account number: ");
     scanf("%d", &account_number);
     printf("Enter amount to deposit: ");
     scanf("%f", &amount);
     Account *cus_account = find_account(account_number);
-                                              
+
     if (cus_account == NULL)
     {
         printf("Account number %d not found!\n", account_number);
 
-    return;                                           
+        return;
     }
     /* The bank account acts as central liquidity for deposits/withdrawals. */
     Account *default_account = find_account(DEFAULT_BANK_ACCOUNT_NUMBER);
@@ -151,17 +167,17 @@ void deposit()
         printf("Deposit failed! Account limit exceeded.\n");
         return;
     }
-    else if (amount > limit)
+    else if (amount > default_account->balance)
     {
         printf("Bank does not have enough funds to complete this deposit!\n");
         return;
     }
+
     cus_account->balance += amount;
     default_account->balance -= amount;
     record_transaction(DEFAULT_BANK_ACCOUNT_NUMBER, account_number, amount);
     printf("Deposit successful! New balance: %.2f\n", cus_account->balance);
 }
-
 
 /**
  * @brief Withdraws funds from a customer account back to the bank account.
@@ -170,6 +186,7 @@ void withdraw()
 {
     int account_number;
     float amount;
+    bool overdraft_used = false;
 
     printf("Ent-er account number: ");
     scanf("%d", &account_number);
@@ -182,288 +199,286 @@ void withdraw()
         printf("Account number %d not found!\n", account_number);
         return;
     }
-    
     else if (cus_account->balance < amount)
     {
+        if (cus_account->overdraft_limit == 0)
+        {
+            printf("Withdrawal failed! Balance is insufficent.\n");
+            return;
+        }
+        else if (cus_account->balance + cus_account->overdraft_limit < amount)
+        {
+            printf("Withdrawal failed! Overdraft limit exceeded.\n");
+            return;
+        }
+        overdraft_used = true;
+    }
 
     Account *default_account = find_account(DEFAULT_BANK_ACCOUNT_NUMBER);
-    if (cus_account->balance - amount>= -cus_account->overdraft_limit)
+
+    cus_account->balance -= amount;
+    default_account->balance += amount;
+    record_transaction(account_number, DEFAULT_BANK_ACCOUNT_NUMBER, amount);
+    printf("Withdrawal successful! New balance: %.2f\n", cus_account->balance);
+    if (overdraft_used)
     {
-        cus_account->balance -= amount;
-        printf("withdraw successful(overdraft used!)\n");
+        printf("Note: Overdraft used! Current overdraft used: %.2f\n", -cus_account->balance);
     }
-    else
+}
+
+/**
+ * @brief Displays the account details and current balance for one account.
+ */
+void check_balance()
+{
+    int account_number;
+
+    printf("Enter account number: ");
+    scanf("%d", &account_number);
+
+    Account *cus_account = find_account(account_number);
+
+    if (cus_account == NULL)
     {
-        printf("Withdrawal failed! Overdraft limit exceeded.\n");
-    }
-   
+        printf("Account number %d not found!\n", account_number);
+        cus_account->balance += 0.0; // Set balance to 0 for non-existent accounts to avoid uninitialized access in print statements.
+
+        return;
     }
 
-    {
-        Account *default_account = find_account(DEFAULT_BANK_ACCOUNT_NUMBER);
+    printf("Account holder: %s\n", cus_account->name);
+    printf("Account number: %d\n", cus_account->account_number);
+    printf("Balance: %.2f\n", cus_account->balance);
+}
 
-        cus_account->balance -= amount;
-        default_account->balance += amount;
-        record_transaction(account_number, DEFAULT_BANK_ACCOUNT_NUMBER, amount);
-        printf("Withdrawal successful! New balance: %.2f\n", cus_account->balance);
-    }
-}    
+/**
+ * @brief Transfers funds between two customer accounts.
+ */
+void transfer()
+{
+    int from_account, to_account;
+    float amount;
 
-    /**
-     * @brief Displays the account details and current balance for one account.
+    printf("Enter source account number: ");
+    scanf("%d", &from_account);
+    printf("Enter destination account number: ");
+    scanf("%d", &to_account);
+    printf("Enter amount to transfer: ");
+    scanf("%f", &amount);
+
+    Account *src_account = find_account(from_account);
+    Account *dest_account = find_account(to_account);
+
+    /*
+     * Validation order short-circuits as early as possible:
+     * 1) both accounts must exist,
+     * 2) accounts must be different,
+     * 3) bank account cannot participate,
+     * 4) source must have enough funds.
      */
-    void check_balance()
+    if (src_account == NULL)
     {
-        int account_number;
-
-        printf("Enter account number: ");
-        scanf("%d", &account_number);
-
-        Account *cus_account = find_account(account_number);
-
-        if (cus_account == NULL)
-        {
-            printf("Account number %d not found!\n", account_number);
-            cus_account ->balance += 0.0; // Set balance to 0 for non-existent accounts to avoid uninitialized access in print statements.
-             
-            return;
-             
-        
-        }
-
-        printf("Account holder: %s\n", cus_account->name);
-        printf("Account number: %d\n", cus_account->account_number);
-        printf("Balance: %.2f\n", cus_account->balance);
+        printf("Source account number %d not found!\n", from_account);
+        return;
     }
-
-    /**
-     * @brief Transfers funds between two customer accounts.
-     */
-    void transfer()
+    else if (dest_account == NULL)
     {
-        int from_account, to_account;
-        float amount;
-
-        printf("Enter source account number: ");
-        scanf("%d", &from_account);
-        printf("Enter destination account number: ");
-        scanf("%d", &to_account);
-        printf("Enter amount to transfer: ");
-        scanf("%f", &amount);
-
-        Account *src_account = find_account(from_account);
-        Account *dest_account = find_account(to_account);
-
-        /*
-         * Validation order short-circuits as early as possible:
-         * 1) both accounts must exist,
-         * 2) accounts must be different,
-         * 3) bank account cannot participate,
-         * 4) source must have enough funds.
-         */
-        if (src_account == NULL)
+        printf("Destination account number %d not found!\n", to_account);
+        return;
+    }
+    else if (from_account == to_account)
+    {
+        printf("Source and destination accounts cannot be the same!\n");
+        return;
+    }
+    else if (from_account == DEFAULT_BANK_ACCOUNT_NUMBER)
+    {
+        printf("Transfers from the bank's account are not allowed!\n");
+        return;
+    }
+    else if (to_account == DEFAULT_BANK_ACCOUNT_NUMBER)
+    {
+        printf("Transfers to the bank's account are not allowed!\n");
+        return;
+    }
+    else if (src_account->balance < amount)
+    {
+        if (src_account->overdraft_limit == 0)
         {
-            printf("Source account number %d not found!\n", from_account);
+            printf("Transfer failed! Balance is insufficent for source account number %d!\n", from_account);
             return;
         }
-        else if (dest_account == NULL)
-        {
-            printf("Destination account number %d not found!\n", to_account);
-            return;
-        }
-        else if (from_account == to_account)
-        {
-            printf("Source and destination accounts cannot be the same!\n");
-            return;
-        }
-        else if (from_account == DEFAULT_BANK_ACCOUNT_NUMBER)
-        {
-            printf("Transfers from the bank's account are not allowed!\n");
-            return;
-        }
-        else if (to_account == DEFAULT_BANK_ACCOUNT_NUMBER)
-        {
-            printf("Transfers to the bank's account are not allowed!\n");
-            return;
-        }
-        else if (src_account->balance < amount)
-        {
-            printf("Insufficient funds in source account number %d!\n", from_account);
-            return;
-        }
-        if ((src_account->balance - amount) < -src_account->overdraft_limit)
+        else if(src_account->balance + src_account->overdraft_limit < amount)
         {
             printf("Transfer failed! Overdraft limit exceeded for source account number %d!\n", from_account);
-            src_account->balance -= amount;
-            printf("Transfer successful(overdraft used!)\n");
-            if (dest_account->balance + amount > dest_account->account_limit)
-            {
-                printf("Transfer failed! Receiver's account limit exceeded.\n");
-                src_account->balance += amount; // Revert sender's balance
-            }
-
             return;
         }
-
-        src_account->balance -= amount;
-        dest_account->balance += amount;
-        record_transaction(from_account, to_account, amount);
-        printf("Transfer successful! New balance of source account: %.2f\n", src_account->balance);
-        printf("New balance of destination account: %.2f\n", dest_account->balance);
+    }
+    else if (dest_account->balance + amount > dest_account->account_limit)
+    {
+        printf("Transfer failed! Account limit exceeded for destination account number %d!\n", to_account);
+        return;
     }
 
-    /**
-     * @brief Prints every recorded transaction in the history list.
-     */
-    void list_all_transactions()
+    src_account->balance -= amount;
+    dest_account->balance += amount;
+    record_transaction(from_account, to_account, amount);
+    printf("Transfer successful! New balance of source account: %.2f\n", src_account->balance);
+    printf("New balance of destination account: %.2f\n", dest_account->balance);
+}
+
+/**
+ * @brief Prints every recorded transaction in the history list.
+ */
+void list_all_transactions()
+{
+    Transaction *current = txn_head;
+    printf("\n--- All Transactions ---\n");
+    while (current != NULL)
     {
-        Transaction *current = txn_head;
-        printf("\n--- All Transactions ---\n");
-        while (current != NULL)
+        printf("From Account: %d | To Account: %d | Amount: %.2f\n",
+               current->from_account, current->to_account, current->amount);
+        current = current->next;
+    }
+}
+
+/**
+ * @brief Prints transactions where the given account is sender or receiver.
+ */
+void list_transactions_for_account()
+{
+    int account_number;
+    printf("Enter account number to view transactions: ");
+    scanf("%d", &account_number);
+
+    Account *cus_account = find_account(account_number);
+    if (cus_account == NULL)
+    {
+        printf("Account number %d not found!\n", account_number);
+        return;
+    }
+
+    Transaction *current = txn_head;
+    printf("\n--- Transactions for Account %d ---\n", account_number);
+    while (current != NULL)
+    {
+        if (current->from_account == account_number || current->to_account == account_number)
         {
             printf("From Account: %d | To Account: %d | Amount: %.2f\n",
                    current->from_account, current->to_account, current->amount);
-            current = current->next;
         }
+        current = current->next;
     }
+}
 
-    /**
-     * @brief Prints transactions where the given account is sender or receiver.
-     */
-    void list_transactions_for_account()
+/**
+ * @brief Displays the interactive menu options.
+ */
+void display_menu()
+{
+    printf("\n--- Banking Application Menu ---\n");
+    printf("Please select an option:\n");
+    printf("1. Create Account\n");
+    printf("2. Deposit\n");
+    printf("3. Withdraw\n");
+    printf("4. Check Balance\n");
+    printf("5. Transfer\n");
+    printf("6. List Accounts\n");
+    printf("7. List All Transactions\n");
+    printf("8. List Transactions for an Account\n");
+    printf("9. Exit\n");
+}
+
+/**
+ * @brief Lists all accounts currently stored in the account linked list.
+ */
+void show_accounts()
+{
+    Account *current = head;
+    printf("\n--- Account List ---\n");
+    while (current != NULL)
     {
-        int account_number;
-        printf("Enter account number to view transactions: ");
-        scanf("%d", &account_number);
+        printf("Account Holder: %20s | Account Number: %5d | Balance: %.2f | Overdraft Limit: %d | Account Limit: %d\n",
+               current->name, current->account_number, current->balance, current->overdraft_limit, current->account_limit);
+        current = current->next;
+    }
+}
 
-        Account *cus_account = find_account(account_number);
-        if (cus_account == NULL)
+/**
+ * @brief Frees all dynamically allocated account nodes.
+ */
+void free_memory()
+{
+    Account *current = head;
+    while (current != NULL)
+    {
+        Account *temp = current;
+        current = current->next;
+        free(temp);
+    }
+}
+
+/**
+ * @brief Performs cleanup and terminates the program.
+ */
+void exit_application()
+{
+    free_memory();
+    printf("Exiting the application. Goodbye!\n");
+    exit(0);
+}
+
+/**
+ * @brief Program entry point.
+ * @return 0 on normal termination.
+ */
+int main()
+{
+    int choice;
+
+    create_default_account(); // Create a default account for the bank
+
+    /* Menu loop continues until the user selects exit. */
+    do
+    {
+        display_menu();
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice)
         {
-            printf("Account number %d not found!\n", account_number);
-            return;
+        case 1:
+            create_account();
+            break;
+        case 2:
+            deposit();
+            break;
+        case 3:
+            withdraw();
+            break;
+        case 4:
+            check_balance();
+            break;
+        case 5:
+            transfer();
+            break;
+        case 6:
+            show_accounts();
+            break;
+
+        case 7:
+            list_all_transactions();
+            break;
+        case 8:
+            list_transactions_for_account();
+            break;
+        case 9:
+            exit_application();
+            break;
+        default:
+            printf("Invalid choice! Please try again.\n");
         }
+    } while (choice != 9);
 
-        Transaction *current = txn_head;
-        printf("\n--- Transactions for Account %d ---\n", account_number);
-        while (current != NULL)
-        {
-            if (current->from_account == account_number || current->to_account == account_number)
-            {
-                printf("From Account: %d | To Account: %d | Amount: %.2f\n",
-                       current->from_account, current->to_account, current->amount);
-            }
-            current = current->next;
-        }
-    }
-
-    /**
-     * @brief Displays the interactive menu options.
-     */
-    void display_menu()
-    {
-        printf("\n--- Banking Application Menu ---\n");
-        printf("Please select an option:\n");
-        printf("1. Create Account\n");
-        printf("2. Deposit\n");
-        printf("3. Withdraw\n");
-        printf("4. Check Balance\n");
-        printf("5. Transfer\n");
-        printf("6. List Accounts\n");
-        printf("7. List All Transactions\n");
-        printf("8. List Transactions for an Account\n");
-        printf("9. Exit\n");
-    }
-
-    /**
-     * @brief Lists all accounts currently stored in the account linked list.
-     */
-    void show_accounts()
-    {
-        Account *current = head;
-        printf("\n--- Account List ---\n");
-        while (current != NULL)
-        {
-            printf("Account Holder: %20s | Account Number: %5d | Balance: %.2f\n",
-                   current->name, current->account_number, current->balance);
-            current = current->next;
-        }
-    }
-
-    /**
-     * @brief Frees all dynamically allocated account nodes.
-     */
-    void free_memory()
-    {
-        Account *current = head;
-        while (current != NULL)
-        {
-            Account *temp = current;
-            current = current->next;
-            free(temp);
-        }
-    }
-
-    /**
-     * @brief Performs cleanup and terminates the program.
-     */
-    void exit_application()
-    {
-        free_memory();
-        printf("Exiting the application. Goodbye!\n");
-        exit(0);
-    }
-
-    /**
-     * @brief Program entry point.
-     * @return 0 on normal termination.
-     */
-    int main()
-    {
-        int choice;
-
-        create_default_account(); // Create a default account for the bank
-
-        /* Menu loop continues until the user selects exit. */
-        do
-        {
-            display_menu();
-            printf("Enter your choice: ");
-            scanf("%d", &choice);
-
-            switch (choice)
-            {
-            case 1:
-                create_account();
-                break;
-            case 2:
-                deposit();
-                break;
-            case 3:
-                withdraw();
-                break;
-            case 4:
-                check_balance();
-                break;
-            case 5:
-                transfer();
-                break;
-            case 6:
-                show_accounts();
-                break;
-
-            case 7:
-                list_all_transactions();
-                break;
-            case 8:
-                list_transactions_for_account();
-                break;
-            case 9:
-                exit_application();
-                break;
-            default:
-                printf("Invalid choice! Please try again.\n");
-            }
-        } while (choice != 9);
-
-        return 0;
-    }
+    return 0;
+}
