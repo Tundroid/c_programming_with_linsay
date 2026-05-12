@@ -19,7 +19,6 @@ typedef struct Account
     float balance;
     int account_limit;
     int overdraft_limit;
-    struct Account *default_account; // Pointer to the default bank account for deposits/withdrawals
     struct Account *next;
 } Account;
 
@@ -147,17 +146,22 @@ void deposit()
     }
     /* The bank account acts as central liquidity for deposits/withdrawals. */
     Account *default_account = find_account(DEFAULT_BANK_ACCOUNT_NUMBER);
-    if (default_account->balance < amount)
+    if (cus_account->balance + amount > cus_account->account_limit)
+    {
+        printf("Deposit failed! Account limit exceeded.\n");
+        return;
+    }
+    else if (amount > limit)
     {
         printf("Bank does not have enough funds to complete this deposit!\n");
         return;
     }
-
     cus_account->balance += amount;
     default_account->balance -= amount;
     record_transaction(DEFAULT_BANK_ACCOUNT_NUMBER, account_number, amount);
     printf("Deposit successful! New balance: %.2f\n", cus_account->balance);
 }
+
 
 /**
  * @brief Withdraws funds from a customer account back to the bank account.
@@ -169,7 +173,7 @@ void withdraw()
 
     printf("Ent-er account number: ");
     scanf("%d", &account_number);
-    printf("Ente-r amount to withdraw: ");
+    printf("Enter amount to withdraw: ");
     scanf("%f", &amount);
 
     Account *cus_account = find_account(account_number);
@@ -183,7 +187,7 @@ void withdraw()
     {
 
     Account *default_account = find_account(DEFAULT_BANK_ACCOUNT_NUMBER);
-    if (cus_account->balance - amount < -cus_account->overdraft_limit)
+    if (cus_account->balance - amount>= -cus_account->overdraft_limit)
     {
         cus_account->balance -= amount;
         printf("withdraw successful(overdraft used!)\n");
@@ -287,8 +291,9 @@ void withdraw()
             printf("Insufficient funds in source account number %d!\n", from_account);
             return;
         }
-        if (dest_account->balance - amount < -src_account->overdraft_limit)
+        if ((src_account->balance - amount) < -src_account->overdraft_limit)
         {
+            printf("Transfer failed! Overdraft limit exceeded for source account number %d!\n", from_account);
             src_account->balance -= amount;
             printf("Transfer successful(overdraft used!)\n");
             if (dest_account->balance + amount > dest_account->account_limit)
