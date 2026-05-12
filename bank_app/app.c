@@ -188,7 +188,7 @@ void withdraw()
     float amount;
     bool overdraft_used = false;
 
-    printf("Ent-er account number: ");
+    printf("Enter account number: ");
     scanf("%d", &account_number);
     printf("Enter amount to withdraw: ");
     scanf("%d", &amount);
